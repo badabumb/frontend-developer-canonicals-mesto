@@ -8,11 +8,11 @@
 
 // @todo: Вывести карточки на страницу
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => { // Добавлена чтобы вес карточки смогли прогрузиться
     renderCards(initialCards);
 });
 
-// Найти все поп-апы
+// Найти все поп-апы, нужно для их плавного открытия
 const popups = document.querySelectorAll('.popup');
 
 // Добавить класс popup_is-animated всем поп-апам
@@ -20,8 +20,10 @@ popups.forEach((popup) => {
     popup.classList.add('popup_is-animated');
 });
 
+// Найти список первых 6 карточек 
 const placesList = document.querySelector('.places__list');
 const cardTemplate = document.querySelector('#card-template').content.querySelector('.places__item');
+
 
 
 // Поиск поп-апов
@@ -39,8 +41,12 @@ const imagePopupCloseButton = imagePopup.querySelector('.popup__close');
 // Поля формы профиля
 const nameInput = profilePopup.querySelector('.popup__input_type_name');
 const jobInput = profilePopup.querySelector('.popup__input_type_description');
+
+// Заполненные поля профиля на сайте
 const profileName = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
+
+// Поле формы
 const profileFormElement = profilePopup.querySelector('.popup__form');
 
 // Поля формы добавления карточки
@@ -53,7 +59,8 @@ const popupImage = imagePopup.querySelector('.popup__image');
 const popupCaption = imagePopup.querySelector('.popup__caption');
 
 
-// === Функции работы с попапами ===
+
+// Функции работы с попапами 
 function openModal(popup) {
     popup.classList.add('popup_is-opened');
 }
@@ -62,7 +69,7 @@ function closeModal(popup) {
     popup.classList.remove('popup_is-opened');
 }
 
-// === Функции работы с карточками ===
+// Функции работы с карточками 
 
 function createCard({ name, link }) {
     const cardElement = cardTemplate.cloneNode(true);
@@ -96,6 +103,7 @@ function createCard({ name, link }) {
     return cardElement;
 }
 
+// Функция для генерации первых 6 карточек
 function renderCards(cards) {
     cards.forEach(cardData => {
       const card = createCard(cardData);
@@ -119,7 +127,7 @@ function handleCardFormSubmit(evt) {
 
 
 
-// === Обработчики профиля ===
+// Обработчики профиля 
 
 // Открытие поп-апа и заполнение полей текущими значениями
 function openProfilePopup() {
@@ -139,7 +147,7 @@ function handleProfileFormSubmit(evt) {
     closeModal(profilePopup); // Закрытие поп-апа
 }
 
-// === Слушатели событий ===
+// Слушатели событий 
 
 // Редактирование профиля
 profileEditButton.addEventListener('click', openProfilePopup);
@@ -151,6 +159,7 @@ addCardButton.addEventListener('click', () => {
     cardForm.reset(); // Очистка полей формы
     openModal(cardPopup);
 });
+
 cardCloseButton.addEventListener('click', () => closeModal(cardPopup));
 cardForm.addEventListener('submit', handleCardFormSubmit);
 
