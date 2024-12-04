@@ -1,0 +1,43 @@
+.popup__input {
+  width: 100%;
+  height: 44px;
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, .2);
+  font-size: 14px;
+  line-height: 18px;
+  box-sizing: border-box;
+  padding: 0;
+  margin-bottom: 5px;
+}
+
+.popup__input:focus {
+  outline: none; /* Убираем стандартный outline */
+  border-bottom: 1px solid rgba(0, 0, 0, .2); /* Меняем цвет границы при фокусе */
+}
+
+/* Стили для сообщения об ошибке */
+.popup__input-error {
+  margin-top: 0;
+  margin-bottom: 0;
+  color: #FF0000;
+  font-size: 12px;
+  font-weight: 400;
+  font-style: normal;
+  font-family: 'Inter';
+  line-height: 15px;
+  min-height: 15px;
+}
+
+/* Стили для невалидного поля ввода */
+.popup__input_invalid {
+  border-bottom: 1px solid #FF0000;
+  margin-bottom: 0;
+}
+
+
+@media screen and (max-width: 568px) {
+  .popup__title {
+    font-size: 12px;
+    line-height: 15px;
+  }
+}
