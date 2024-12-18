@@ -1,0 +1,15 @@
+.card__like-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    max-height: 35px;
+    max-width: 25px;
+  }
+  
+  .card__like-count {
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 400;
+    color: black;
+  }

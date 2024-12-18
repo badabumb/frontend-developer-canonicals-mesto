@@ -15,7 +15,7 @@ import './pages/index.css';
 import { enableValidation } from './components/validate.js';
 import { createCard } from './components/card.js';
 import { openModal, closeModal, closePopupOnOverlayClick } from './components/modal.js';
-
+import { getCards, updateProfile, getProfile, addCard, deleteCard, toggleLike, updateAvatar } from './components/api.js';
 
 const initialCards = [
     {
@@ -43,7 +43,6 @@ const initialCards = [
       link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/baikal.jpg",
     }
 ];
-
 
 // Задаем параметры для валидации
 const validationSettings = {
@@ -103,6 +102,41 @@ function renderCards(cards) {
     });
 }
 
+// Добавление карточек с сервера
+function renderCardsFromServer() {
+    let userId;
+
+    getProfile()
+        .then(profile => {
+            userId = profile._id; // Сохраняем ID пользователя
+            return getCards();   // Загружаем карточки
+        })
+        .then(cards => {
+            cards.forEach(cardData => {
+                const card = createCard(
+                    {
+                        name: cardData.name,
+                        link: cardData.link,
+                        likes: cardData.likes,
+                        _id: cardData._id,
+                        owner: cardData.owner // Информация о владельце карточки
+                    },
+                    cardTemplate,
+                    popupImage,
+                    popupCaption,
+                    openModal,
+                    userId, // Передаем ID пользователя в createCard
+                    deleteCard, // Передаем функцию удаления карточки
+                    toggleLike
+                );
+                placesList.append(card);
+            });
+        })
+        .catch(err => {
+            console.error(`Ошибка при загрузке карточек: ${err}`);
+        });
+}
+
 // Обработчики событий
 profileEditButton.addEventListener('click', () => {
     nameInput.value = document.querySelector('.profile__title').textContent;
@@ -110,25 +144,65 @@ profileEditButton.addEventListener('click', () => {
     openModal(profilePopup);
 });
 
-// Обработчик события отправки формы редактирования профиля
+// Обработчик отправки формы редактирования профиля
 profileForm.addEventListener('submit', (evt) => {
-    evt.preventDefault(); // Предотвращаем перезагрузку страницы
-    // Обновляем информацию на странице
-    document.querySelector('.profile__title').textContent = nameInput.value;
-    document.querySelector('.profile__description').textContent = jobInput.value;
-    closeModal(profilePopup); // Закрываем попап
+    evt.preventDefault();  // Предотвращаем перезагрузку страницы
+  
+    // Получаем новые данные из формы
+    const name = nameInput.value;
+    const about = jobInput.value;
+  
+    // Используем уже существующую функцию updateProfile для отправки данных на сервер
+    updateProfile(name, about)
+      .then(() => {
+        // После успешного обновления профиля на сервере, загружаем актуальные данные
+        getProfile()
+          .then(data => {
+            // Обновляем данные на странице
+            document.querySelector('.profile__title').textContent = data.name;
+            document.querySelector('.profile__description').textContent = data.about;
+            closeModal(profilePopup);  // Закрываем попап после успешного обновления
+          })
+          .catch(err => {
+            console.error('Ошибка при получении данных профиля:', err);
+          });
+      })
+      .catch(err => {
+        console.error('Ошибка при обновлении данных профиля на сервере:', err);
+      });
 });
 
+// Обработчик отправки формы для добавления новой карточки
 cardForm.addEventListener('submit', (evt) => {
-    evt.preventDefault();
-    const newCard = createCard({
-        name: cardNameInput.value,
-        link: cardLinkInput.value
-    }, cardTemplate, popupImage, popupCaption, openModal);
-    placesList.prepend(newCard);
-    closeModal(cardPopup);
-    cardForm.reset();
+    evt.preventDefault();  // Предотвращаем перезагрузку страницы
+    
+    const name = cardNameInput.value;  // Получаем название карточки из поля формы
+    const link = cardLinkInput.value;  // Получаем ссылку на изображение из поля формы
+
+    // Отправляем запрос на сервер для добавления карточки
+    addCard(name, link)
+        .then(data => {
+            // Если карточка успешно добавлена, создаем её на странице
+            const newCard = createCard(
+                { name: data.name, link: data.link, likes: data.likes || [] },
+                cardTemplate,
+                popupImage,
+                popupCaption,
+                openModal,
+                userId,
+                deleteCard,
+                toggleLike
+            );
+            placesList.prepend(newCard);  // Добавляем карточку в начало списка
+            closeModal(cardPopup);  // Закрываем попап после добавления
+            cardForm.reset();  // Очищаем форму
+        })
+        .catch(err => {
+            console.error('Ошибка при добавлении карточки:', err);
+        });
 });
+
+
 
 addCardButton.addEventListener('click', () => {
     cardForm.reset();
@@ -144,5 +218,28 @@ popups.forEach((popup) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderCards(initialCards);
+    // Скрываем блок профиля на время загрузки данных с сервера
+    const profileTitle = document.querySelector('.profile__title');
+    const profileDescription = document.querySelector('.profile__description');
+    
+    profileTitle.style.visibility = 'hidden';
+    profileDescription.style.visibility = 'hidden';
+
+    getProfile()
+        .then(data => {
+            // После получения данных с сервера показываем имя и описание
+            profileTitle.textContent = data.name;
+            profileDescription.textContent = data.about;
+            profileTitle.style.visibility = 'visible';
+            profileDescription.style.visibility = 'visible';
+        })
+        .catch(err => {
+            console.error('Ошибка при загрузке данных профиля:', err);
+        });
+
+    // Включаем валидацию
+    enableValidation(validationSettings);
+
+    // Рендерим карточки с сервера
+    renderCardsFromServer();
 });
