@@ -4,6 +4,12 @@
 
 ---
 
+## Ссылка на Github pages:
+
+https://badabumb.github.io/frontend-developer-canonicals-mesto/
+
+---
+
 ## Основная функциональность:
 
 - При загрузке на странице рендерятся шесть карточек, которые добавляет JavaScript с использованием шаблона `template`.  
