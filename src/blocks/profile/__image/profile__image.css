@@ -11,23 +11,6 @@
   position: relative;
 }
 
-.profile__image .profile__avatar-edit-icon {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 30px;
-  height: 30px;
-  background-image: url('../../../images/edit-icon.svg'); /* Замените на путь к вашей иконке */
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.profile__image:hover .profile__avatar-edit-icon {
-  opacity: 1;
-}
 
 @media screen and (max-width: 740px) {
   .profile__image {

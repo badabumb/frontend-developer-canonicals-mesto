@@ -16,6 +16,7 @@
     <section class="profile page__section">
       <!-- Контейнер для аватара -->
       <div class="profile__image">
+        <button type="button" class="profile__edit-image-button"></button>
         <div class="profile__avatar-edit-icon"></div> <!-- Иконка редактирования -->
       </div>
       <div class="profile__info">
@@ -44,7 +45,7 @@
         <span class="popup__input-error name-input-error"></span>
         <input type="text" name="description" id="description-input" class="popup__input popup__input_type_description" placeholder="Занятие" minlength="2" maxlength="200" required>
         <span class="popup__input-error description-input-error"></span>
-        <button type="submit" class="button popup__button">Сохранить</button>
+        <button type="submit" class="button popup__button" data-default-text="Сохранить">Сохранить</button>
       </form>
     </div>
   </div>
@@ -57,7 +58,7 @@
         <span class="place-name-input-error popup__input-error"></span>
         <input type="url" name="link" id="link-input" class="popup__input popup__input_type_url" placeholder="Ссылка на картинку" required>
         <span class="link-input-error popup__input-error"></span>
-        <button type="submit" class="button popup__button">Сохранить</button>
+        <button type="submit" class="button popup__button" data-default-text="Сохранить">Сохранить</button>
       </form>
     </div>
   </div>
@@ -72,11 +73,11 @@
   <div class="popup popup_type_avatar-edit">
     <div class="popup__content">
         <button type="button" class="popup__close"></button>
-        <h3 class="popup__title">Сменить аватар</h3>
+        <h3 class="popup__title">Обновить аватар</h3>
         <form class="popup__form" name="avatar-form" novalidate>
             <input type="url" name="avatar" id="avatar-input" class="popup__input popup__input_type_url" placeholder="Ссылка на аватар" required>
             <span class="avatar-input-error popup__input-error"></span>
-            <button type="submit" class="button popup__button">Сохранить</button>
+            <button type="submit" class="button popup__button" data-default-text="Сохранить">Сохранить</button>
         </form>
     </div>
   </div>

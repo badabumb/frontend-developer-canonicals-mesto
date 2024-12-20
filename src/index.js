@@ -54,6 +54,16 @@ const validationSettings = {
     errorClass: 'popup__error_visible'
 };
 
+function toggleSubmitButtonState(button, isLoading, loadingText = 'Сохранение...') {
+    if (isLoading) {
+        button.textContent = loadingText;
+        button.disabled = true;
+    } else {
+        button.textContent = button.dataset.defaultText || 'Сохранить';
+        button.disabled = false;
+    }
+}
+
 // Включаем валидацию
 document.addEventListener('DOMContentLoaded', () => {
     enableValidation(validationSettings);
@@ -73,6 +83,7 @@ const cardTemplate = document.querySelector('#card-template').content.querySelec
 const profilePopup = document.querySelector('.popup_type_edit');
 const cardPopup = document.querySelector('.popup_type_new-card');
 const imagePopup = document.querySelector('.popup_type_image');
+const avatarPopup = document.querySelector('.popup_type_avatar-edit');
 
 // Кнопки для попапов
 const profileEditButton = document.querySelector('.profile__edit-button');
@@ -80,15 +91,21 @@ const addCardButton = document.querySelector('.profile__add-button');
 const profileCloseButton = profilePopup.querySelector('.popup__close');
 const cardCloseButton = cardPopup.querySelector('.popup__close');
 const imagePopupCloseButton = imagePopup.querySelector('.popup__close');
+const avatarButton = document.querySelector('.profile__edit-image-button');
+const avatarImageButton = document.querySelector('.profile__avatar-edit-icon');
+const avatarCloseButton = avatarPopup.querySelector('.popup__close');
 
 // Поля формы
 const nameInput = profilePopup.querySelector('.popup__input_type_name');
 const jobInput = profilePopup.querySelector('.popup__input_type_description');
+const profileForm = profilePopup.querySelector('.popup__form');
 const cardForm = cardPopup.querySelector('.popup__form');
 const cardNameInput = cardPopup.querySelector('.popup__input_type_card-name');
 const cardLinkInput = cardPopup.querySelector('.popup__input_type_url');
 
-const profileForm = profilePopup.querySelector('.popup__form');
+const avatarForm = avatarPopup.querySelector('.popup__form');
+const avatarLinkInput = avatarPopup.querySelector('.popup__input_type_url');
+
 
 // Попап изображения
 const popupImage = imagePopup.querySelector('.popup__image');
@@ -144,9 +161,44 @@ profileEditButton.addEventListener('click', () => {
     openModal(profilePopup);
 });
 
+avatarButton.addEventListener('click', () => {
+    avatarForm.reset();
+    openModal(avatarPopup);
+});
+
+avatarImageButton.addEventListener('click', () => {
+    avatarForm.reset();
+    openModal(avatarPopup);
+});
+
+avatarForm.addEventListener('submit', (evt) => {
+    evt.preventDefault();
+
+    const submitButton = avatarForm.querySelector('.popup__button');
+    toggleSubmitButtonState(submitButton, true);
+
+    const link = avatarLinkInput.value;
+
+    updateAvatar(link)
+        .then(() => {
+            // После успешного обновления аватара на сервере, обновляем аватар на странице
+            document.querySelector('.profile__image').style.backgroundImage = `url(${link})`;
+            closeModal(avatarPopup);  // Закрываем попап
+        })
+        .catch(err => {
+            console.error('Ошибка при обновлении аватара:', err);
+        })
+        .finally(() => {
+            toggleSubmitButtonState(submitButton, false);
+        });
+});
+
 // Обработчик отправки формы редактирования профиля
 profileForm.addEventListener('submit', (evt) => {
     evt.preventDefault();  // Предотвращаем перезагрузку страницы
+
+    const submitButton = profileForm.querySelector('.popup__button');
+    toggleSubmitButtonState(submitButton, true);
   
     // Получаем новые данные из формы
     const name = nameInput.value;
@@ -169,28 +221,45 @@ profileForm.addEventListener('submit', (evt) => {
       })
       .catch(err => {
         console.error('Ошибка при обновлении данных профиля на сервере:', err);
-      });
+      })
+      .finally(() => {
+        toggleSubmitButtonState(submitButton, false);
+    });
 });
 
 // Обработчик отправки формы для добавления новой карточки
 cardForm.addEventListener('submit', (evt) => {
     evt.preventDefault();  // Предотвращаем перезагрузку страницы
+
+    let userId = getProfile()
+        .then(profile => {
+            userId = profile._id; // Сохраняем ID пользователя
+        })
+
+    const submitButton = cardForm.querySelector('.popup__button');
+    toggleSubmitButtonState(submitButton, true);
     
     const name = cardNameInput.value;  // Получаем название карточки из поля формы
     const link = cardLinkInput.value;  // Получаем ссылку на изображение из поля формы
 
     // Отправляем запрос на сервер для добавления карточки
     addCard(name, link)
-        .then(data => {
+        .then(cardData => {
             // Если карточка успешно добавлена, создаем её на странице
             const newCard = createCard(
-                { name: data.name, link: data.link, likes: data.likes || [] },
+                {
+                    name: cardData.name,
+                    link: cardData.link,
+                    likes: cardData.likes,
+                    _id: cardData._id,
+                    owner: cardData.owner // Информация о владельце карточки
+                },
                 cardTemplate,
                 popupImage,
                 popupCaption,
                 openModal,
-                userId,
-                deleteCard,
+                userId, // Передаем ID пользователя в createCard
+                deleteCard, // Передаем функцию удаления карточки
                 toggleLike
             );
             placesList.prepend(newCard);  // Добавляем карточку в начало списка
@@ -199,6 +268,9 @@ cardForm.addEventListener('submit', (evt) => {
         })
         .catch(err => {
             console.error('Ошибка при добавлении карточки:', err);
+        })
+        .finally(() => {
+            toggleSubmitButtonState(submitButton, false);
         });
 });
 
@@ -212,6 +284,7 @@ addCardButton.addEventListener('click', () => {
 profileCloseButton.addEventListener('click', () => closeModal(profilePopup));
 cardCloseButton.addEventListener('click', () => closeModal(cardPopup));
 imagePopupCloseButton.addEventListener('click', () => closeModal(imagePopup));
+avatarCloseButton.addEventListener('click', () => closeModal(avatarPopup));
 
 popups.forEach((popup) => {
     popup.addEventListener('mousedown', closePopupOnOverlayClick);
@@ -219,19 +292,23 @@ popups.forEach((popup) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Скрываем блок профиля на время загрузки данных с сервера
+    const profileImage = document.querySelector('.profile__image');
     const profileTitle = document.querySelector('.profile__title');
     const profileDescription = document.querySelector('.profile__description');
     
     profileTitle.style.visibility = 'hidden';
     profileDescription.style.visibility = 'hidden';
+    profileImage.style.validationSettings = 'hidden';
 
     getProfile()
         .then(data => {
             // После получения данных с сервера показываем имя и описание
             profileTitle.textContent = data.name;
             profileDescription.textContent = data.about;
+            profileImage.style.backgroundImage = `url(${data.avatar})`;
             profileTitle.style.visibility = 'visible';
             profileDescription.style.visibility = 'visible';
+            profileImage.style.visibility = 'visible';
         })
         .catch(err => {
             console.error('Ошибка при загрузке данных профиля:', err);

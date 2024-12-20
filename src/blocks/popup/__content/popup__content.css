@@ -1,7 +1,8 @@
 .popup__content {
   max-width: 430px;
   width: 100%;
-  min-height: 330px;
+  height: auto;
+  min-height: 272px;
   background-color: #fff;
   border-radius: 10px;
   position: relative;
@@ -16,4 +17,12 @@
     margin-top: 40px;
     padding: 30px 20px;
   }
+}
+
+.popup_type_edit .popup__content {
+  min-height: 330px;
+}
+
+.popup_type_new-card .popup__content {
+  min-height: 330px;
 }
